@@ -55,6 +55,7 @@ public class Activity2WithFragents extends AppCompatActivity {
         private TextView mF1Content;
         private Note note;
         private int mPosition;
+        private NoteDatabase mNoteDatabase;
 
         @Nullable
         @Override
@@ -71,7 +72,22 @@ public class Activity2WithFragents extends AppCompatActivity {
 
             mPosition = getArguments().getInt("position");
 
-            final NoteDatabase mNoteDatabase = Room.databaseBuilder(getContext(),NoteDatabase.class,"notepad_db").build();
+            mNoteDatabase = Room.databaseBuilder(getContext(),NoteDatabase.class,"notepad_db").build();
+            getNoteAsync();
+
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    MyFragment2 myFragment2 = new MyFragment2();
+                    Bundle bundle = new Bundle();
+                    bundle.putInt("position",mPosition);
+                    myFragment2.setArguments(bundle);
+                    getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,myFragment2).commit();
+                }
+            });
+        }
+
+        private void getNoteAsync() {
             new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... voids) {
@@ -87,17 +103,6 @@ public class Activity2WithFragents extends AppCompatActivity {
                     mF1Time.setText(note.getTime());
                 }
             }.execute();
-
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    MyFragment2 myFragment2 = new MyFragment2();
-                    Bundle bundle = new Bundle();
-                    bundle.putInt("position",mPosition);
-                    myFragment2.setArguments(bundle);
-                    getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,myFragment2).commit();
-                }
-            });
         }
     }
 
