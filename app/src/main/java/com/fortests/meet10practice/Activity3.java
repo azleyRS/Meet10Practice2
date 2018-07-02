@@ -3,6 +3,7 @@ package com.fortests.meet10practice;
 import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -11,20 +12,20 @@ import android.text.TextWatcher;
 import android.widget.TextView;
 
 public class Activity3 extends AppCompatActivity {
-    Note mNote;
-    TextView mA3Name;
-    TextView mA3Time;
-    TextView mA3Content;
+    private Note mNote;
+    private TextView mA3Name;
+    private TextView mA3Time;
+    private TextView mA3Content;
 
-    //
-    NoteDatabase mNoteDatabase;
+    private NoteDatabase mNoteDatabase;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity3);
 
-        mNoteDatabase = Room.databaseBuilder(getApplicationContext(),NoteDatabase.class,"notepad_db").allowMainThreadQueries().build();
+        //mNoteDatabase = Room.databaseBuilder(getApplicationContext(),NoteDatabase.class,"notepad_db").allowMainThreadQueries().build();
+        mNoteDatabase = Room.databaseBuilder(getApplicationContext(),NoteDatabase.class,"notepad_db").build();
 
 
         mNote = new Note();
@@ -81,11 +82,14 @@ public class Activity3 extends AppCompatActivity {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        //DBManager manager = new DBManager(this);
-        //manager.addNote(mNote);
-
-        mNoteDatabase.daoAccess().addNote(mNote);
+    public void onBackPressed() {
+        super.onBackPressed();
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                mNoteDatabase.daoAccess().addNote(mNote);
+                return null;
+            }
+        }.execute();
     }
 }

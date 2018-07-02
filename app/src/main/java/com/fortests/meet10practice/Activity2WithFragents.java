@@ -3,6 +3,7 @@ package com.fortests.meet10practice;
 import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -18,8 +19,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 public class Activity2WithFragents extends AppCompatActivity {
-    int mNotePosition;
-
+    private int mNotePosition;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -28,11 +28,9 @@ public class Activity2WithFragents extends AppCompatActivity {
 
         if (savedInstanceState == null){
             initFragment1();
-
         } else {
             //do nothing i suppose
         }
-
     }
 
     private void initFragment1() {
@@ -52,11 +50,11 @@ public class Activity2WithFragents extends AppCompatActivity {
     }
 
     public static class MyFragment1 extends Fragment{
-        TextView mF1Name;
-        TextView mF1Time;
-        TextView mF1Content;
-
-        int mPosition;
+        private TextView mF1Name;
+        private TextView mF1Time;
+        private TextView mF1Content;
+        private Note note;
+        private int mPosition;
 
         @Nullable
         @Override
@@ -73,15 +71,22 @@ public class Activity2WithFragents extends AppCompatActivity {
 
             mPosition = getArguments().getInt("position");
 
-            //DBManager manager = new DBManager(getContext());
-            //Note note = manager.getNote(mPosition);
-            NoteDatabase mNoteDatabase = Room.databaseBuilder(getContext(),NoteDatabase.class,"notepad_db").allowMainThreadQueries().build();
-            Note note = mNoteDatabase.daoAccess().getNote(mPosition+1);
+            final NoteDatabase mNoteDatabase = Room.databaseBuilder(getContext(),NoteDatabase.class,"notepad_db").build();
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    note = mNoteDatabase.daoAccess().getNote(mPosition+1);
+                    return null;
+                }
 
-
-            mF1Name.setText(note.getName());
-            mF1Content.setText(note.getContent());
-            mF1Time.setText(note.getTime());
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+                    mF1Name.setText(note.getName());
+                    mF1Content.setText(note.getContent());
+                    mF1Time.setText(note.getTime());
+                }
+            }.execute();
 
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -97,17 +102,12 @@ public class Activity2WithFragents extends AppCompatActivity {
     }
 
     public static class MyFragment2 extends Fragment{
-        EditText mF2Name;
-        TextView mF2Time;
-        EditText mF2Content;
-        //DBManager manager;
-        NoteDatabase mNoteDatabase;
-
-
-        Note note;
-
-        int mPosition2;
-
+        private EditText mF2Name;
+        private TextView mF2Time;
+        private EditText mF2Content;
+        private NoteDatabase mNoteDatabase;
+        private Note note;
+        private int mPosition2;
 
         @Nullable
         @Override
@@ -123,17 +123,9 @@ public class Activity2WithFragents extends AppCompatActivity {
             mF2Content = view.findViewById(R.id.fragment2_content);
 
             mPosition2 = getArguments().getInt("position");
+            mNoteDatabase = Room.databaseBuilder(getContext(),NoteDatabase.class,"notepad_db").build();
 
-            //manager = new DBManager(getContext());
-            //note = manager.getNote(mPosition2);
-
-            mNoteDatabase = Room.databaseBuilder(getContext(),NoteDatabase.class,"notepad_db").allowMainThreadQueries().build();
-            note = mNoteDatabase.daoAccess().getNote(mPosition2+1);
-
-
-            mF2Name.setText(note.getName());
-            mF2Content.setText(note.getContent());
-            mF2Time.setText(note.getTime());
+            getNoteAsync();
 
             mF2Name.addTextChangedListener(new TextWatcher() {
                 @Override
@@ -169,12 +161,37 @@ public class Activity2WithFragents extends AppCompatActivity {
             });
         }
 
+        private void getNoteAsync() {
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    note = mNoteDatabase.daoAccess().getNote(mPosition2+1);
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+                    mF2Name.setText(note.getName());
+                    mF2Content.setText(note.getContent());
+                    mF2Time.setText(note.getTime());
+                }
+            }.execute();
+        }
+
         @Override
         public void onPause() {
             super.onPause();
 
             //manager.update(note, mPosition2);
-            mNoteDatabase.daoAccess().update(note);
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    mNoteDatabase.daoAccess().update(note);
+                    return null;
+                }
+            }.execute();
+            //mNoteDatabase.daoAccess().update(note);
         }
     }
 }

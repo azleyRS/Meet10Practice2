@@ -11,7 +11,7 @@ import android.widget.TextView;
 import java.util.List;
 
 class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
-    List<Note> mNotepad;
+    private List<Note> mNotepad;
 
     public MyAdapter(List<Note> notepad) {
         mNotepad = notepad;
